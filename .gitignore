@@ -1,0 +1,9 @@
+# Ignore secret environment variables
+.env
+
+# Ignore Python virtual environments
+venv/
+__pycache__/
+
+# Ignore massive data files (optional, but a good habit)
+*.csv
