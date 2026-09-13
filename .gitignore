@@ -7,3 +7,6 @@ __pycache__/
 
 # Ignore massive data files (optional, but a good habit)
 *.csv
+
+# Ignore runtime logs
+*.log
