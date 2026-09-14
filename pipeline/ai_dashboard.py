@@ -16,7 +16,10 @@ DB_HOST = os.getenv('DB_HOST', 'localhost')
 DB_PORT = os.getenv('DB_PORT', '5432')
 DB_NAME = os.getenv('DB_NAME', 'job_market_db')
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
-DB_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# NEON_DATABASE_URL takes priority so the dashboard reads the same cloud DB
+# the weekly GitHub Actions pipeline writes to; falls back to local Postgres
+# (the DB_* vars above) when it isn't set.
+DB_URI = os.getenv('NEON_DATABASE_URL') or f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # --- Palette (validated categorical order — role_category keeps the same
 # color in every chart it appears in; see the dataviz skill's palette.md) ---
