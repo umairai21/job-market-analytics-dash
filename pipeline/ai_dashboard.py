@@ -44,9 +44,14 @@ WORK_MODEL_COLORS = {"Onsite": "#2a78d6", "Hybrid": "#eb6834", "Remote": "#1baf7
 
 
 # 2. Connect to PostgreSQL (cached — avoids reconnecting on every rerun)
+# The chat agent is pointed at uk_job_postings_chat, a view that excludes
+# job_link — Adzuna's job_link is a short-lived tracking redirect that 404s
+# within days, so it can never be a reliable answer; excluding the column
+# structurally means the agent can't surface it even if asked, rather than
+# relying on a prompt instruction it could ignore.
 @st.cache_resource
 def get_database_connection():
-    return SQLDatabase.from_uri(DB_URI, include_tables=['uk_job_postings'])
+    return SQLDatabase.from_uri(DB_URI, include_tables=['uk_job_postings_chat'], view_support=True)
 
 
 @st.cache_resource
@@ -62,9 +67,12 @@ def get_llm():
 @st.cache_resource
 def get_agent_executor():
     custom_prefix = """
-You are an expert SQL analyst querying the 'uk_job_postings' table.
+You are an expert SQL analyst querying the 'uk_job_postings_chat' view.
 When filtering by job roles, ALWAYS use the 'role_category' column directly (e.g., role_category = 'Data Engineer') rather than searching job_title unless specifically asked for a custom job title.
 Always order salary queries by max_salary DESC.
+This view has no job link/URL column. If asked for a link to apply, explain
+that direct links aren't available and suggest searching the job title and
+company name on a job board instead.
 """
     return create_sql_agent(
         llm=get_llm(),
@@ -147,9 +155,13 @@ def chart_top_n(df, column, title, n=8):
 st.set_page_config(page_title="UK Job Market AI", page_icon="🤖", layout="wide")
 st.title("🤖 UK Data Job Market Assistant")
 
-overview_tab, chat_tab = st.tabs(["📊 Market Overview", "💬 Ask the AI"])
+# st.chat_input only pins to the bottom of the page when it's called at the
+# page's root — inside st.tabs (or any other container) it loses that
+# pinning and renders as a normal inline widget instead. So the view switch
+# is a sidebar nav, not tabs, keeping the chat view's root free for it.
+view = st.sidebar.radio("View", ["📊 Market Overview", "💬 Ask the AI"], label_visibility="collapsed")
 
-with overview_tab:
+if view == "📊 Market Overview":
     df = load_jobs_df()
 
     if st.button("🔄 Refresh data"):
@@ -183,7 +195,7 @@ with overview_tab:
     with c4:
         st.plotly_chart(chart_top_n(df, 'company_name', "Top companies by postings"), use_container_width=True)
 
-with chat_tab:
+else:
     st.markdown("Ask me anything about the job market, salaries, or specific roles in the UK!")
 
     agent_executor = get_agent_executor()
