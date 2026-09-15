@@ -154,7 +154,7 @@ def chart_top_n(df, column, title, n=8):
 # 4. Streamlit Frontend UI
 st.set_page_config(page_title="UK Job Market AI", page_icon="🤖", layout="wide")
 st.title("🤖 UK Data Job Market Assistant")
-st.caption(
+st.markdown(
     "Tracking data-related job postings across the UK — sourced from Adzuna, "
     "refreshed automatically every week. Browse the market overview or ask "
     "the AI assistant a question in plain English."
