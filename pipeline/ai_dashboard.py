@@ -154,6 +154,11 @@ def chart_top_n(df, column, title, n=8):
 # 4. Streamlit Frontend UI
 st.set_page_config(page_title="UK Job Market AI", page_icon="🤖", layout="wide")
 st.title("🤖 UK Data Job Market Assistant")
+st.caption(
+    "Tracking data-related job postings across the UK — sourced from Adzuna, "
+    "refreshed automatically every week. Browse the market overview or ask "
+    "the AI assistant a question in plain English."
+)
 
 # st.chat_input only pins to the bottom of the page when it's called at the
 # page's root — inside st.tabs (or any other container) it loses that
@@ -173,27 +178,32 @@ if view == "📊 Market Overview":
     pct_remote = (df['work_model'] == 'Remote').mean() * 100
     top_role = df['role_category'].value_counts().idxmax() if total_postings else "N/A"
 
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Total Postings", f"{total_postings:,}")
-    k2.metric("Avg Max Salary", f"£{avg_max_salary:,.0f}" if pd.notna(avg_max_salary) else "N/A")
-    k3.metric("% Remote", f"{pct_remote:.1f}%")
-    k4.metric("Top Role Category", top_role)
+    with st.container(border=True):
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric("Total Postings", f"{total_postings:,}")
+        k2.metric("Avg Max Salary", f"£{avg_max_salary:,.0f}" if pd.notna(avg_max_salary) else "N/A")
+        k3.metric("% Remote", f"{pct_remote:.1f}%")
+        k4.metric("Top Role Category", top_role)
 
-    st.divider()
+    st.subheader("Roles & Salaries")
+    with st.container(border=True):
+        c1, c2 = st.columns(2)
+        with c1:
+            st.plotly_chart(chart_role_counts(df), use_container_width=True)
+        with c2:
+            st.plotly_chart(chart_avg_salary_by_role(df), use_container_width=True)
 
-    c1, c2 = st.columns(2)
-    with c1:
-        st.plotly_chart(chart_role_counts(df), use_container_width=True)
-    with c2:
-        st.plotly_chart(chart_avg_salary_by_role(df), use_container_width=True)
+    st.subheader("Work Model")
+    with st.container(border=True):
+        st.plotly_chart(chart_work_model(df), use_container_width=True)
 
-    st.plotly_chart(chart_work_model(df), use_container_width=True)
-
-    c3, c4 = st.columns(2)
-    with c3:
-        st.plotly_chart(chart_top_n(df, 'location_city', "Top cities by postings"), use_container_width=True)
-    with c4:
-        st.plotly_chart(chart_top_n(df, 'company_name', "Top companies by postings"), use_container_width=True)
+    st.subheader("Geography & Employers")
+    with st.container(border=True):
+        c3, c4 = st.columns(2)
+        with c3:
+            st.plotly_chart(chart_top_n(df, 'location_city', "Top cities by postings"), use_container_width=True)
+        with c4:
+            st.plotly_chart(chart_top_n(df, 'company_name', "Top companies by postings"), use_container_width=True)
 
 else:
     st.markdown("Ask me anything about the job market, salaries, or specific roles in the UK!")
