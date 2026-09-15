@@ -154,6 +154,24 @@ def chart_top_n(df, column, title, n=8):
 # 4. Streamlit Frontend UI
 st.set_page_config(page_title="UK Job Market AI", page_icon="🤖", layout="wide")
 
+# The top nav (st.navigation position="top") renders small by default — size
+# it up so a visitor notices there's a second tab, not just cosmetic.
+st.markdown(
+    """
+    <style>
+    div[data-testid="stTopNavSection"] {
+        gap: 0.5rem;
+        padding: 0.4rem 0;
+    }
+    a[data-testid="stTopNavLink"] {
+        font-size: 1.15rem;
+        padding: 0.65rem 1.4rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 def render_header():
     st.title("🤖 UK Data Job Market Assistant")
