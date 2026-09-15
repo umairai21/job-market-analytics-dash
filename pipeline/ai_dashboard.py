@@ -153,20 +153,19 @@ def chart_top_n(df, column, title, n=8):
 
 # 4. Streamlit Frontend UI
 st.set_page_config(page_title="UK Job Market AI", page_icon="🤖", layout="wide")
-st.title("🤖 UK Data Job Market Assistant")
-st.markdown(
-    "Tracking data-related job postings across the UK — sourced from Adzuna, "
-    "refreshed automatically every week. Browse the market overview or ask "
-    "the AI assistant a question in plain English."
-)
 
-# st.chat_input only pins to the bottom of the page when it's called at the
-# page's root — inside st.tabs (or any other container) it loses that
-# pinning and renders as a normal inline widget instead. So the view switch
-# is a sidebar nav, not tabs, keeping the chat view's root free for it.
-view = st.sidebar.radio("View", ["📊 Market Overview", "💬 Ask the AI"], label_visibility="collapsed")
 
-if view == "📊 Market Overview":
+def render_header():
+    st.title("🤖 UK Data Job Market Assistant")
+    st.markdown(
+        "Tracking data-related job postings across the UK — sourced from Adzuna, "
+        "refreshed automatically every week. Browse the market overview or ask "
+        "the AI assistant a question in plain English."
+    )
+
+
+def overview_page():
+    render_header()
     df = load_jobs_df()
 
     if st.button("🔄 Refresh data"):
@@ -205,7 +204,9 @@ if view == "📊 Market Overview":
         with c4:
             st.plotly_chart(chart_top_n(df, 'company_name', "Top companies by postings"), use_container_width=True)
 
-else:
+
+def chat_page():
+    render_header()
     st.markdown("Ask me anything about the job market, salaries, or specific roles in the UK!")
 
     agent_executor = get_agent_executor()
@@ -239,3 +240,13 @@ else:
                     error_msg = f"Sorry, I encountered an error: {e}"
                     st.error(error_msg)
                     st.session_state.messages.append({"role": "assistant", "content": error_msg})
+
+
+nav = st.navigation(
+    [
+        st.Page(overview_page, title="Market Overview", icon="📊"),
+        st.Page(chat_page, title="Ask the AI", icon="💬"),
+    ],
+    position="top",
+)
+nav.run()
