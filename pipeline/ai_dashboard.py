@@ -51,7 +51,16 @@ WORK_MODEL_COLORS = {"Onsite": "#2a78d6", "Hybrid": "#eb6834", "Remote": "#1baf7
 # relying on a prompt instruction it could ignore.
 @st.cache_resource
 def get_database_connection():
-    return SQLDatabase.from_uri(DB_URI, include_tables=['uk_job_postings_chat'], view_support=True)
+    # pool_pre_ping tests a pooled connection before reuse and transparently
+    # reconnects if it's dead — needed because Neon closes idle connections,
+    # and this SQLDatabase instance is cache_resource'd (kept alive) across
+    # chat messages, so a connection can go stale between them.
+    return SQLDatabase.from_uri(
+        DB_URI,
+        include_tables=['uk_job_postings_chat'],
+        view_support=True,
+        engine_args={"pool_pre_ping": True},
+    )
 
 
 @st.cache_resource
@@ -86,7 +95,7 @@ company name on a job board instead.
 
 @st.cache_data(ttl=600)
 def load_jobs_df():
-    engine = create_engine(DB_URI)
+    engine = create_engine(DB_URI, pool_pre_ping=True)
     return pd.read_sql("SELECT * FROM uk_job_postings", engine)
 
 
