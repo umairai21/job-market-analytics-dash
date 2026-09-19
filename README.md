@@ -1,5 +1,7 @@
 # UK Data Job Market Analytics
 
+**Live dashboard:** [job-market-analytics-dash-j7e9sixyphp7wbvnappqpei.streamlit.app](https://job-market-analytics-dash-j7e9sixyphp7wbvnappqpei.streamlit.app/)
+
 An end-to-end data platform that tracks data-related job postings across the UK. A weekly pipeline pulls listings from the Adzuna API, cleans and categorizes them, and loads new postings into a Postgres (Neon) database. A Streamlit dashboard sits on top, offering a market overview with KPIs and charts plus an AI chat assistant that answers plain-English questions about the data by writing SQL under the hood.
 
 ## Features
